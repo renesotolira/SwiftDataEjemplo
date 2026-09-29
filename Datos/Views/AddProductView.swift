@@ -9,27 +9,28 @@ import SwiftUI
 import SwiftData
 
 struct AddProductView: View {
- /*
-  @Bindable sirve para poder crear bindings ($) hacia las propiedades de un objeto observable q
-  */
+    /*
+     @Bindable sirve para poder crear bindings ($) hacia las propiedades de un objeto observable q
+     */
     @Bindable var viewModel: ProductViewModel
     @Environment(\.modelContext) private var modelContext
+    @State private var showAlert = false
+    @State private var alert: ProductAlert?
     
     var body: some View {
         GroupBox{
-            TextField("Nombre:", text: $viewModel.product.name)
-            TextField("Precio:", value: $viewModel.product.price, format: .number)
-                .keyboardType(.decimalPad)
+            ProductView( product: viewModel.product )
             
-                Button(action: {
-                    viewModel.addProduct(context: modelContext)
-                }) {
-                    Label("Nuevo Producto", systemImage: "plus")
-                }
-                .padding()
-                .foregroundStyle(Color.white)
-                .background(Color.blue)
-                .clipShape(RoundedRectangle(cornerRadius: 8))
+            ProductButton( title: "Agregar", systemImage: "plus" ) {
+                let result = viewModel.addProduct( context: modelContext )
+                alert = viewModel.alert(for: result)
+                showAlert = true
+            }
+        }
+        .alert(alert?.title ?? "", isPresented: $showAlert) {
+            Button("OK") { }
+        } message: {
+            Text(alert?.message ?? "")
         }
     }
 }
@@ -37,7 +38,7 @@ struct AddProductView: View {
 #Preview {
     AddProductView(viewModel: ProductViewModel())
         .modelContainer(
-              for: Product.self,
-              inMemory: true
-          )
+            for: Product.self,
+            inMemory: true
+        )
 }
