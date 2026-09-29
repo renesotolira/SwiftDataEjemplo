@@ -36,7 +36,7 @@ enum ProductOperationResult {
         return products.filter { $0.name.localizedCaseInsensitiveContains(search) }
     }
     
-    private func validateProduct(_ product: Product) -> ( name: String, price: Float )? {
+    private func validateProduct(_ product: Product) -> ( name: String, price: Decimal )? {
         let nombre = product.name.trimmingCharacters( in: .whitespacesAndNewlines )
         
         guard !nombre.isEmpty,
@@ -63,7 +63,7 @@ enum ProductOperationResult {
         context.insert(newProduct)
         
         do{
-            try? context.save()
+            try context.save()
             product.price = 0.0
             product.name = ""
             return .success
@@ -74,19 +74,24 @@ enum ProductOperationResult {
     }
     
     func updateProduct(
-        product: Product,
+        targetProduct: Product,
+        from draftProduct: Product,
         context: ModelContext
-    ) ->  ProductOperationResult {
-        guard let data = validateProduct(product)
-        else {
+    ) -> ProductOperationResult {
+        // 1. Validar la información contenida en el producto borrador
+        guard let validatedData = validateProduct(draftProduct) else {
             return .invalidData
         }
-        product.name = data.name
-        product.price = data.price
-        do{
-            try? context.save()
+        
+        // 2. Aplicar los cambios validados al producto real en la base de datos
+        targetProduct.name = validatedData.name
+        targetProduct.price = validatedData.price
+        
+        // 3. Guardar en el contexto de SwiftData
+        do {
+            try context.save()
             return .success
-        }catch {
+        } catch {
             return .saveError
         }
     }
@@ -95,35 +100,44 @@ enum ProductOperationResult {
         offsets: IndexSet,
         products: [Product],
         context: ModelContext
-    ) {
-        
+    ) -> ProductOperationResult {
+        // 1. Eliminar cada elemento seleccionado según sus índices
         for index in offsets {
+            guard products.indices.contains(index) else { continue }
             context.delete(products[index])
+        }
+        
+        // 2. Guardar los cambios en el contexto de SwiftData
+        do {
+            try context.save()
+            return .success
+        } catch {
+            return .saveError
         }
     }
     
     func alert(for result: ProductOperationResult) -> ProductAlert {
-
-            switch result {
-
-            case .success:
-                return ProductAlert(
-                    title: "Operación exitosa",
-                    message: "Los cambios se guardaron correctamente."
-                )
-
-            case .invalidData:
-                return ProductAlert(
-                    title: "Datos inválidos",
-                    message: "El nombre del producto no puede estar vacío y el precio no puede ser menor que 0."
-                )
-
-            case .saveError:
-                return ProductAlert(
-                    title: "Error",
-                    message: "No se pudieron guardar los cambios."
-                )
-            }
+        
+        switch result {
+            
+        case .success:
+            return ProductAlert(
+                title: "Operación exitosa",
+                message: "Los cambios se guardaron correctamente."
+            )
+            
+        case .invalidData:
+            return ProductAlert(
+                title: "Datos inválidos",
+                message: "El nombre del producto no puede estar vacío y el precio no puede ser menor que 0."
+            )
+            
+        case .saveError:
+            return ProductAlert(
+                title: "Error",
+                message: "No se pudieron guardar los cambios."
+            )
         }
+    }
     
 }

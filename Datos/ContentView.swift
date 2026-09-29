@@ -10,7 +10,7 @@ import SwiftData
 
 struct ContentView: View {
     @State private var viewModel = ProductViewModel()
-    @Query private var products: [Product]
+    @Query(sort: \Product.name) private var products: [Product]
         
     var body: some View {
         NavigationSplitView {
