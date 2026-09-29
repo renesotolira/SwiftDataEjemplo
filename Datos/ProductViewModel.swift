@@ -4,16 +4,19 @@ import Observation
 
 @Observable class ProductViewModel {
 
-    var name: String = ""
-    var price: String = ""
+    var product: Product
+    
+    init(){
+        product = Product(name: "", price: 0.0)
+    }
 
     func addProduct(context: ModelContext) {
 
-        let nombre = name.trimmingCharacters(
+        let nombre = product.name.trimmingCharacters(
             in: .whitespacesAndNewlines
         )
 
-        let precioTexto = price.trimmingCharacters(
+        let precioTexto = String(product.price).trimmingCharacters(
             in: .whitespacesAndNewlines
         )
 
@@ -31,8 +34,8 @@ import Observation
 
         context.insert(newProduct)
 
-        name = ""
-        price = ""
+        product.price = 0.0
+        product.name = ""
     }
 
     func deleteProduct(

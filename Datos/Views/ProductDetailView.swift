@@ -13,11 +13,11 @@ struct ProductDetailView: View {
         HStack{
             Text("\(item.name)")
             Spacer()
-            Text("\(item.price)")
+            Text("\(item.price.formatted(.number))")
         }.padding()
     }
 }
 
 #Preview {
-    ProductDetailView(item: Product(name: "----", price: 0.00))
+    ProductDetailView(item: Product(name: "----", price: 120.50))
 }
